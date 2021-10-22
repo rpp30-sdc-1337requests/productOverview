@@ -1,24 +1,30 @@
 const mongoose = require('mongoose');
-let DB;
-// const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/productShort.csv'
+const Schema = mongoose.Schema;
+var db;
+const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/product.csv'
 // const productDataPath = __dirname + '/product.csv';
-const featureDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/featuresShort.csv'
+const featureDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/features.csv'
 const csvtojson = require('csvtojson');
-
+let Product;
+let ProductDetail;
+let Feature;
 
 
 const connectToDB = async () => {
   console.log('attempting to connect to db');
   await mongoose.connect('mongodb://localhost:27017/products');
 
-  DB = mongoose.connection;
-  DB.on('error', (error) => { console.error(error)});
-  if (DB.readyState === 1) {
+  db = mongoose.connection
+  db.on('error', (error) => { console.error(error)});
+  if (db.readyState === 1) {
     console.log('connected to DB');
   }
-  // importProductCSVToMongo();
-  // importFeaturesCSVToMongo();
-  setTimeout(importFeaturesCSVToMongo, 2000)
+
+  Product = mongoose.model('Product', getSchema('product'));
+  Feature = mongoose.model('Feature', getSchema('feature'));
+  ProductDetail = mongoose.model('ProductDetail', getSchema('productDetail'));
+
+  setTimeout(importProductCSVToMongo, 2000)
 }
 
 connectToDB().catch( err => console.log(err));
@@ -41,6 +47,21 @@ const getSchema = (name) => {
       features: [{feature: String, value: String}]
     })
     return (featureSchema)
+  } else if (name ==='productDetail') {
+
+    const productDetailsSchema = new mongoose.Schema ({
+  //can i copy the product info from the productsScehma?
+    productDetails: {
+      product_id: Number,
+      name: String,
+      slogan: String,
+      description: String,
+      category: String,
+      default_price: String
+    },
+    features: [{feature: String, value: String}]
+    })
+    return (productDetailsSchema)
   } else {
     return null;
   }
@@ -48,7 +69,9 @@ const getSchema = (name) => {
 
 const importProductCSVToMongo =  () => {
   console.log('hello from parser');
-  const Product = mongoose.model('Product', getSchema('product'));
+
+  // const Product = mongoose.model('Product', getSchema('product'));
+  // const Product = mongoose.model('Product', getSchema('product'));
 
   csvtojson().fromFile(productDataPath).then( async (data) => {
     for (let i = 0; i < data.length; i++) {
@@ -64,13 +87,16 @@ const importProductCSVToMongo =  () => {
       console.log(`entry # ${i} complete.`)
       if (i === data.length - 1) {
         console.log(`data import for products completed. ${i} lines imported.`)
+        importFeaturesCSVToMongo();
       }
     }
   })
 }
 
 const importFeaturesCSVToMongo = () => {
-  const Feature = mongoose.model('Feature', getSchema('feature'));
+  // const Feature = mongoose.model('Feature', getSchema('feature'));
+
+
   csvtojson().fromFile(featureDataPath).then( async (data) => {
 
     let featureArray = [];
@@ -111,8 +137,49 @@ const importFeaturesCSVToMongo = () => {
 
       }
     }
-    console.log('data import for products completed. All lines imported.')
+    console.log('data import for features completed. All lines imported.')
+    importProductDetailsToMongo()
   })
+}
+
+const importProductDetailsToMongo = async () => {
+
+
+  // const ProductDetail = mongoose.model('ProductDetail', getSchema('productDetail'));
+  let productCount = await db.collections.products.count();
+
+ for (let i = 1; i < productCount; i++) {
+  let dbProductDetails = await Product.find({product_id: i}).lean().exec();
+  let dbFeatures = await Feature.find({product_id: i}).lean().exec();
+
+  if (dbFeatures.length !== 0) {
+    let newProductDetailEntry = new ProductDetail ({
+      productDetails: {
+        product_id: dbProductDetails[0].product_id,
+        name: dbProductDetails[0].name,
+        slogan: dbProductDetails[0].slogan,
+        description: dbProductDetails[0].description,
+        category: dbProductDetails[0].category,
+        default_price: dbProductDetails[0].default_price
+      },
+      features: dbFeatures[0].features,
+    });
+    await newProductDetailEntry.save()
+  } else {
+    let newProductDetailEntry = new ProductDetail ({
+      productDetails: {
+        product_id: dbProductDetails[0].product_id,
+        name: dbProductDetails[0].name,
+        slogan: dbProductDetails[0].slogan,
+        description: dbProductDetails[0].description,
+        category: dbProductDetails[0].category,
+        default_price: dbProductDetails[0].default_price
+      }
+    });
+    await newProductDetailEntry.save()
+  }
+
+ }
 }
 
 module.exports = { connectToDB };
