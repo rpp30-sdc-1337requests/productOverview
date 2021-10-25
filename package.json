@@ -21,6 +21,7 @@
   "scripts": {
     "test": "mocha",
     "start": "nodemon ./server/index.js",
+    "start-noWatch": "node ./server/index.js",
     "start-inspect": "node --inspect ./server/index.js"
   },
   "repository": {
