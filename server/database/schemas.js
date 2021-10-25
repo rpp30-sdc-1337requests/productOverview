@@ -72,8 +72,8 @@ const getSchema = (name) => {
 
 const importProductCSVToMongo =  () => {
   const Product = mongoose.model('Product', getSchema('product'));
-  const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/productShort.csv'
-  // const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/product.csv'
+  // const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/productShort.csv'
+  const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/product.csv'
 
   csvtojson().fromFile(productDataPath).then( async (data) => {
     for (let i = 0; i < data.length; i++) {
@@ -95,8 +95,8 @@ const importProductCSVToMongo =  () => {
 
   const importFeaturesToMongo = () => {
     const Feature = mongoose.model('Feature', getSchema('feature'));
-    const featuresFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/featuresShort.csv';
-    // const featuresFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/features.csv'
+    // const featuresFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/featuresShort.csv';
+    const featuresFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/features.csv'
 
     csvtojson().fromFile(featuresFilePath).then( async (data) => {
 
@@ -152,8 +152,8 @@ const importProductCSVToMongo =  () => {
   }
 
 const importSkusToMongo = () => {
-  const skuFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/skusShort.csv';
-  // const skuFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/skus.csv';
+  // const skuFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/skusShort.csv';
+  const skuFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/skus.csv';
 
   const Sku = mongoose.model('Sku', getSchema('sku'));
   console.log('[sku] loading csv data into parser .....');
@@ -221,8 +221,8 @@ const importSkusToMongo = () => {
 
   const importStylesIntoMongo = () => {
     const Style = mongoose.model('Style', getSchema('style'));
-    const styleFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/stylesShort.csv';
-    // const styleFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/styles.csv'
+    // const styleFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/stylesShort.csv';
+    const styleFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/styles.csv'
 
     csvtojson().fromFile(styleFilePath).then( async (data) => {
 
@@ -292,8 +292,8 @@ const importSkusToMongo = () => {
 
   const importRelatedProductsToMongo = () => {
     const Related = mongoose.model('Related', getSchema('related'));
-    const relatedFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/relatedShort.csv';
-    // const relatedFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/related.csv'
+    // const relatedFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/relatedShort.csv';
+    const relatedFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/related.csv'
 
     csvtojson().fromFile(relatedFilePath).then( async (data) => {
 
@@ -352,8 +352,8 @@ const importSkusToMongo = () => {
   }
 
 const importPhotosToMongo = () => {
-  const photoFilePath  = '/Users/ashleyreischman/Desktop/SDC Data Exports/photosShort.csv';
-  // const photoFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/photos.csv';
+  // const photoFilePath  = '/Users/ashleyreischman/Desktop/SDC Data Exports/photosShort.csv';
+  const photoFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/photos.csv';
 
   const Photo = mongoose.model('Photo', getSchema('photo'));
   console.log('[photos] loading csv data into parser .....');
