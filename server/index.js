@@ -68,6 +68,7 @@ app.get('*/styles', (req, res) => {
 })
 
 //related
+//also needs indexing.
 app.get('*/related', async (req, res) => {
   let result = await relatedModel.find({productId: req.query.product_id}).lean();
   res.status(200).send(result[0].relatedProducts);
