@@ -23,6 +23,7 @@ connectToDB().catch( err => console.log(err));
 const getSchema = (name) => {
   if (name === 'product') {
     const productSchema = new mongoose.Schema ({
+      // product_id: { type: Number, index: true },
       product_id: Number,
       name: String,
       slogan: String,
@@ -71,7 +72,7 @@ const getSchema = (name) => {
 }
 
 const importProductCSVToMongo =  () => {
-  const Product = mongoose.model('Product', getSchema('product'));
+  const Product = mongoose.model('NoIndexProduct', getSchema('product'));
   // const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/productShort.csv'
   const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/product.csv'
 
@@ -89,7 +90,7 @@ const importProductCSVToMongo =  () => {
       console.log(`[products] entry # ${i} complete.`)
     }
     console.log(`data import for products completed. Starting Features import...`)
-    importFeaturesToMongo();
+    // importFeaturesToMongo();
   })
 }
 
