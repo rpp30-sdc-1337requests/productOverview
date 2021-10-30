@@ -6,6 +6,12 @@ const dbURL = 'mongodb://localhost:27017/products';
 const productModel = require('./database/models/products.js').Product
 const featureModel = require('./database/models/features.js').Feature
 const relatedModel = require('./database/models/related.js').Related
+//for reimport only
+// const databaseHelpers = require('./database/schemas.js');
+//for reimport only
+// app.listen(port, () => {
+//   console.log(`Server is up on port ${port}`);
+// })
 
 mongoose.connect(dbURL)
 .then ((result) => {
