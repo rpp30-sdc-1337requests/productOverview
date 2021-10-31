@@ -15,7 +15,7 @@ const connectToDB = async () => {
   }
 
   //i do this to give the inspect tab time to load before the database starts getting written to. Otherwise i don't get any interruptions for breakpoints so debugging is harder.
-  // setTimeout(groupStylesByProdId, 2000)
+  setTimeout(groupStylesByProdId, 2000)
 }
 
 connectToDB().catch( err => console.log(err));
@@ -266,7 +266,7 @@ const importStylesForAggregationToMongo =  () => {
   csvtojson().fromFile(styleFilePath).then( async (data) => {
     for (let i = 0; i < data.length; i++) {
       let defaultStyle = false;
-      if (data[i].default_style) {
+      if (parseInt(data[i].default_style) === 1) {
         defaultStyle = true;
       }
       let newEntry = new Style ({
@@ -281,7 +281,7 @@ const importStylesForAggregationToMongo =  () => {
       console.log(`[stylestest] entry # ${i} complete.`)
     }
     console.log(`data import for styles completed. Starting skus import...`)
-    importSkusToMongo()
+    // importSkusToMongo()
   })
 }
 
@@ -539,6 +539,7 @@ const groupStylesByProdId = async () => {
     await newEntry.save();
     console.log(`[styleToProdAgg] entry # ${i} complete.`)
   }
+  console.log('[stylesToProdAgg] done.');
 }
 
 
