@@ -1,6 +1,7 @@
 #files
 .DS_Store
 *.csv
+.nyc_output/
 
 #folders
 node_modules
