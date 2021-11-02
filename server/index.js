@@ -7,7 +7,7 @@ const dbURL = 'mongodb://localhost:27017/products';
 const productModel = require('./database/models/products.js').Product
 const featureModel = require('./database/models/features.js').Feature
 const relatedModel = require('./database/models/related.js').Related
-const stylesAggedByProdModel = require('./database/models/styles.js').StylesAggedByProd
+const stylesAggedByProdModel = require('./database/models/stylesAggedByProd.js').StylesAggedByProd
 
 //for reimport only
 // const databaseHelpers = require('./database/schemas.js');
@@ -15,6 +15,7 @@ const stylesAggedByProdModel = require('./database/models/styles.js').StylesAgge
 // app.listen(port, () => {
 //   console.log(`Server is up on port ${port}`);
 // })
+
 const connectToDB = () => {
   mongoose.connect(dbURL)
   .then ((result) => {
