@@ -1,5 +1,15 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const productModel = require('./models/products.js').Product
+const featureModel = require('./models/features.js').Feature
+const relatedModel = require('./models/related.js').Related
+const stylesAggedByProdModel = require('./models/stylesAggedByProd.js').StylesAggedByProd
+const stylesAggedModel = require('./models/stylesAggedWithSkusAndPhotos.js').StyleAgg;
+const stylesModel = require('./models/styles.js').Style;
+const photosModel = require('./models/photos.js').Photo;
+const skusModel = require('./models/skus.js').Skus;
+
+
 var db;
 const csvtojson = require('csvtojson');
 const connectToDB = async () => {
@@ -15,106 +25,19 @@ const connectToDB = async () => {
   }
 
   //i do this to give the inspect tab time to load before the database starts getting written to. Otherwise i don't get any interruptions for breakpoints so debugging is harder.
-  setTimeout(groupStylesByProdId, 2000)
+  // setTimeout(importFeaturesToMongo, 2000)
 }
 
 connectToDB().catch( err => console.log(err));
 
-const getSchema = (name) => {
-  if (name === 'product') {
-    const productSchema = new mongoose.Schema ({
-      product_id: { type: Number, index: true },
-      name: String,
-      slogan: String,
-      description: String,
-      category: String,
-      default_price: String
-    });
-    return (productSchema);
-  } else if (name === 'feature') {
-    const featureSchema = new mongoose.Schema ({
-      product_id: Number,
-      features: [{feature: String, value: String}]
-    })
-    return (featureSchema)
-  } else if (name === 'sku') {
-    const skuSchema = new mongoose.Schema ({
-      styleId: { type: Number, index: true },
-      skus: [{
-        sku_id: Number,
-        quantity: Number,
-        size: String
-      }]
-    })
-    return (skuSchema)
-  } else if (name === 'style') {
-    // const styleSchema = new mongoose.Schema ({
-    //   productId: Number,
-    //   styles: [{style_id: Number, name: String, original_price: String, sale_price: String, 'default?': Boolean}]
-    // })
-    const styleSchema = new mongoose.Schema ({
-      product_id: Number,
-      style_id: { type: Number, index: true },
-      name: String,
-      sale_price: String,
-      original_price: String,
-      default_style: Boolean
-    })
-    return (styleSchema)
-  } else if (name === 'related') {
-    const relatedSchema = new mongoose.Schema ({
-      productId: Number,
-      relatedProducts: [Number]
-    })
-    return (relatedSchema)
-  }  else if (name === 'photo') {
-    const photoSchema = new mongoose.Schema ({
-      styleId: { type: Number, index: true },
-      photos: [{photoId: Number, url: String, thumbnail_url: String}]
-    })
-    return (photoSchema)
-  } else if ('styleAgg') {
-    const styleAggSchema = new mongoose.Schema ({
-      product_id: { type: Number, index: true },
-      results: [{
-        style_id: Number,
-        sale_price: String,
-        original_price: String,
-        name: String,
-        'default?': Boolean,
-        skus: [{sku_id: Number, size: String, quantity: Number, _id: Schema.ObjectId}],
-        photos: [{thumbnail_url: String, url: String, _id: Schema.ObjectId}]
-      }]
-    })
-    return (styleAggSchema);
-  } else if ('styleProdAgg') {
-    const styleProdAggSchema = new mongoose.Schema ({
-      product_id: { type: Number, index: true },
-      results: [{
-        style_id: Number,
-        sale_price: String,
-        original_price: String,
-        name: String,
-        'default?': Boolean,
-        skus: [{sku_id: Number, size: String, quantity: Number, _id: Schema.ObjectId}],
-        photos: [{thumbnail_url: String, url: String, _id: Schema.ObjectId}]
-      }]
-    })
-    return (styleProdAggSchema);
-  } else {
-    return null;
-  }
-}
-
 
 const importProductCSVToMongo =  () => {
-  const Product = mongoose.model('NoIndexProduct', getSchema('product'));
   // const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/productShort.csv'
   const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/product.csv'
 
   csvtojson().fromFile(productDataPath).then( async (data) => {
     for (let i = 0; i < data.length; i++) {
-      let newEntry = new Product ({
+      let newEntry = new productModel ({
         product_id: parseInt(data[i].id),
         name: data[i].name,
         slogan: data[i].slogan,
@@ -131,7 +54,7 @@ const importProductCSVToMongo =  () => {
 }
 
 const importFeaturesToMongo = () => {
-  const Feature = mongoose.model('Feature', getSchema('feature'));
+
   // const featuresFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/featuresShort.csv';
   const featuresFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/features.csv'
 
@@ -152,7 +75,7 @@ const importFeaturesToMongo = () => {
         let featureObj = {feature: data[i].feature, value: data[i].value};
         featureArray.push(featureObj);
         if (i === data.length - 1) {
-          let newFeature = new Feature ({
+          let newFeature = new featureModel ({
             product_id: currentProductId,
             features: featureArray,
           })
@@ -161,7 +84,7 @@ const importFeaturesToMongo = () => {
         }
       } else {
         //account for the scenario where there may be a product without any features. So we could skip from product_id 4 to 6, but we would still need to hang on to the features we're
-        let newFeature = new Feature ({
+        let newFeature = new featureModel ({
           product_id: currentProductId,
           features: featureArray,
         })
@@ -174,7 +97,7 @@ const importFeaturesToMongo = () => {
         currentProductId++;
 
         if (i === data.length - 1) {
-          let newFeature = new Feature ({
+          let newFeature = new featureModel ({
             product_id: currentProductId,
             features: featureArray,
           })
@@ -183,7 +106,8 @@ const importFeaturesToMongo = () => {
         }
       }
     }
-    console.log('data import for features completed. All lines imported. Starting sku import... ')
+    console.log('data import for features completed. All lines imported. Starting related import... ')
+    importRelatedProductsToMongo();
   })
 }
 
@@ -191,7 +115,6 @@ const importSkusToMongo = () => {
   // const skuFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/skusShort.csv';
   const skuFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/skus.csv';
 
-  const Sku = mongoose.model('sku', getSchema('sku'));
   console.log('[sku] loading csv data into parser .....');
     csvtojson().fromFile(skuFilePath).then( async (data) => {
 
@@ -214,7 +137,7 @@ const importSkusToMongo = () => {
           }
           skuArray.push(skuObj);
           if (i === data.length - 1) {
-            let newSku = new Sku ({
+            let newSku = new skusModel ({
               styleId: currentStyleId,
               skus: skuArray,
             })
@@ -224,7 +147,7 @@ const importSkusToMongo = () => {
           }
         } else {
           //account for the scenario where there may be a product without any features. So we could skip from product_id 4 to 6, but we would still need to hang on to the features we're
-          let newSku = new Sku ({
+          let newSku = new skusModel ({
             styleId: currentStyleId,
             skus: skuArray,
           })
@@ -241,7 +164,7 @@ const importSkusToMongo = () => {
           currentStyleId++;
 
           if (i === data.length - 1) {
-            let newSku = new Sku ({
+            let newSku = new skusModel ({
               styleId: currentStyleId,
               skus: skuArray,
             })
@@ -251,14 +174,13 @@ const importSkusToMongo = () => {
         }
       }
       console.log('data import for skus completed. All lines imported. Starting Styles Import....')
-      importPhotosToMongo();
     })
   }
 
 
 
 const importStylesForAggregationToMongo =  () => {
-  const Style = mongoose.model('style', getSchema('style'));
+
   // const styleFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/stylesShort.csv';
   const styleFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/styles.csv'
 
@@ -269,7 +191,7 @@ const importStylesForAggregationToMongo =  () => {
       if (parseInt(data[i].default_style) === 1) {
         defaultStyle = true;
       }
-      let newEntry = new Style ({
+      let newEntry = new stylesModel ({
         product_id: parseInt(data[i].productId),
         style_id: parseInt(data[i].id),
         name: data[i].name,
@@ -281,7 +203,7 @@ const importStylesForAggregationToMongo =  () => {
       console.log(`[stylestest] entry # ${i} complete.`)
     }
     console.log(`data import for styles completed. Starting skus import...`)
-    // importSkusToMongo()
+
   })
 }
 
@@ -289,7 +211,7 @@ const importPhotosToMongo = () => {
   // const photoFilePath  = '/Users/ashleyreischman/Desktop/SDC Data Exports/photosShort.csv';
   const photoFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/photos.csv';
 
-  const Photo = mongoose.model('photo', getSchema('photo'));
+
   console.log('[photos] loading csv data into parser .....');
   csvtojson().fromFile(photoFilePath).then( async (data) => {
 
@@ -313,7 +235,7 @@ const importPhotosToMongo = () => {
 
         photoArray.push(photoObj);
         if (i === data.length - 1) {
-          let newPhoto = new Photo ({
+          let newPhoto = new photosModel ({
             styleId: currentStyleId,
             photos: photoArray,
           })
@@ -323,7 +245,7 @@ const importPhotosToMongo = () => {
         }
       } else {
         //account for the scenario where there may be a product without any features. So we could skip from product_id 4 to 6, but we would still need to hang on to the features we're
-        let newPhoto = new Photo ({
+        let newPhoto = new photosModel ({
           styleId: currentStyleId,
           photos: photoArray,
         })
@@ -340,7 +262,7 @@ const importPhotosToMongo = () => {
         currentStyleId++;
 
         if (i === data.length - 1) {
-          let newPhoto = new Photo ({
+          let newPhoto = new photosModel ({
             styleId: currentStyleId,
             photos: photoArray,
           })
@@ -355,7 +277,6 @@ const importPhotosToMongo = () => {
 }
 
 const importRelatedProductsToMongo = () => {
-  const Related = mongoose.model('Related', getSchema('related'));
   // const relatedFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/relatedShort.csv';
   const relatedFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/related.csv'
 
@@ -378,8 +299,8 @@ const importRelatedProductsToMongo = () => {
         //however, if we're in the last loop and the currentProductId does equal the styleId, then we'll save the entry to the relatedArray but never write it to the DB. This if statement below takes care of writing the entry to the DB
         //in the case when this is the last iteration.
         if (i === data.length - 1) {
-          let newRelated = new Related ({
-            productId: currentProductId,
+          let newRelated = new relatedModel ({
+            product_id: currentProductId,
             relatedProducts: relatedArray,
           })
           await newRelated.save();
@@ -387,8 +308,8 @@ const importRelatedProductsToMongo = () => {
         }
       } else {
         //account for the scenario where there may be a product without any features. So we could skip from product_id 4 to 6, but we would still need to hang on to the features we're
-        let newRelated = new Related ({
-          productId: currentProductId,
+        let newRelated = new relatedModel ({
+          product_id: currentProductId,
           relatedProducts: relatedArray,
         })
         await newRelated.save();
@@ -401,8 +322,8 @@ const importRelatedProductsToMongo = () => {
         ///if the dataset is on it's last entry, that means that it just finished writing the data for the PREVIOUS productId, so we need to still write the current dataset to the database.
         //that means we need to have the currentProductId incremented (see line 238) and then write this individual entry to the DB.
         if (i === data.length - 1) {
-          let newRelated = new Related ({
-            productId: currentProductId,
+          let newRelated = new relatedModel ({
+            product_id: currentProductId,
             relatedProducts: relatedArray,
           })
           await newRelated.save();
@@ -410,8 +331,7 @@ const importRelatedProductsToMongo = () => {
         }
       }
     }
-    console.log('data import for related completed. All lines imported. Starting photos import.....')
-
+    console.log('data import for related completed. All lines imported.')
   })
 }
 
@@ -419,14 +339,10 @@ const importRelatedProductsToMongo = () => {
 ///Data Aggregation functions
 const aggregateStyles = async () => {
 
-  const Style = mongoose.model('style', getSchema('style'));
-  const StyleAgg = mongoose.model('StyleAggregate', getSchema('styleAgg'));
-
-
-  const styleCount = await Style.count();
+  const styleCount = await stylesModel.count();
 
   for (let i = 1; i <= styleCount; i++) {
-    let result = await Style.aggregate([
+    let result = await stylesModel.aggregate([
       { $match: { style_id: i } },
       {
         $lookup: {
@@ -448,7 +364,7 @@ const aggregateStyles = async () => {
     ]);
 
     if (result[0].Skus.length !== 0 && result[0].Photos.length !== 0) {
-      let newStyleAgg = new StyleAgg ({
+      let newStyleAgg = new stylesAggedModel ({
         product_id: result[0].product_id,
         results: [{
           style_id: result[0].style_id,
@@ -463,7 +379,7 @@ const aggregateStyles = async () => {
       await newStyleAgg.save();
       console.log(`[styleAgg] entry # ${i} complete.`)
     } else if (result[0].Skus.length !== 0 && result[0].Photos.length === 0) {
-      let newStyleAgg = new StyleAgg ({
+      let newStyleAgg = new stylesAggedModel ({
         product_id: result[0].product_id,
         results: [{
           style_id: result[0].style_id,
@@ -478,7 +394,7 @@ const aggregateStyles = async () => {
       await newStyleAgg.save();
       console.log(`[styleAgg] entry # ${i} complete.`)
     } else if (result[0].Photos.length !== 0 && result[0].Skus.length === 0) {
-      let newStyleAgg = new StyleAgg ({
+      let newStyleAgg = new stylesAggedModel ({
         product_id: result[0].product_id,
         results: [{
           style_id: result[0].style_id,
@@ -493,7 +409,7 @@ const aggregateStyles = async () => {
       await newStyleAgg.save();
       console.log(`[styleAgg] entry # ${i} complete.`)
     } else {
-      let newStyleAgg = new StyleAgg ({
+      let newStyleAgg = new stylesAggedModel ({
         product_id: result[0].product_id,
         results: [{
           style_id: result[0].style_id,
@@ -512,16 +428,14 @@ const aggregateStyles = async () => {
 }
 
 const groupStylesByProdId = async () => {
-  const StyleAgg = mongoose.model('StyleAggregate', getSchema('styleAgg'));
-  const StylesAggedByProd = mongoose.model('StylesAggedByProd', getSchema('styleProdAgg'));
 
-  let lastStyleAggEntry = await StyleAgg.find({}).sort({_id: -1}).limit(1).lean();
+  let lastStyleAggEntry = await stylesAggedModel.find({}).sort({_id: -1}).limit(1).lean();
   let styleAggCount = lastStyleAggEntry[0].product_id;
   let result = [];
 
   for (let i = 1; i <= styleAggCount; i++) {
     let allStyles = [];
-    let result = await StyleAgg.aggregate([
+    let result = await stylesAggedModel.aggregate([
       { $match: { product_id: i } }
     ]);
 
@@ -531,7 +445,7 @@ const groupStylesByProdId = async () => {
     for (let j = 0; j < result.length; j++) {
       allStyles.push(result[j].results[0]);
     }
-    let newEntry = new StylesAggedByProd ({
+    let newEntry = new stylesAggedByProdModel ({
       product_id: result[0].product_id,
       results: allStyles
     })
@@ -541,6 +455,3 @@ const groupStylesByProdId = async () => {
   }
   console.log('[stylesToProdAgg] done.');
 }
-
-
-

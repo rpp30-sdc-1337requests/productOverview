@@ -1,12 +1,13 @@
 const express = require ('express');
 const app = express();
 const port = 3009;
+var server;
 const mongoose = require ('mongoose');
 const dbURL = 'mongodb://localhost:27017/products';
 const productModel = require('./database/models/products.js').Product
 const featureModel = require('./database/models/features.js').Feature
 const relatedModel = require('./database/models/related.js').Related
-const stylesAggedByProdModel = require('./database/models/styles.js').StylesAggedByProd
+const stylesAggedByProdModel = require('./database/models/stylesAggedByProd.js').StylesAggedByProd
 
 //for reimport only
 // const databaseHelpers = require('./database/schemas.js');
@@ -15,16 +16,25 @@ const stylesAggedByProdModel = require('./database/models/styles.js').StylesAgge
 //   console.log(`Server is up on port ${port}`);
 // })
 
-mongoose.connect(dbURL)
-.then ((result) => {
-  app.listen(port, () => {
-    console.log(`Server is up on port ${port}`);
+const connectToDB = () => {
+  mongoose.connect(dbURL)
+  .then ((result) => {
+    server = app.listen(port, () => {
+      console.log(`DB is connect & server is listening on port ${port}`);
+    })
   })
-})
-.catch((err) => {
-  console.error(error)
-})
+  .catch((err) => {
+    console.error(error)
+  })
+}
 
+connectToDB();
+
+const closeServer = () => {
+  server.close();
+  mongoose.connection.close();
+  console.log('closed the server and db!');
+}
 
 //universal get
 // app.get('/*', (req, res) => {
@@ -33,7 +43,7 @@ mongoose.connect(dbURL)
 //style
 //
 app.get('*/styles', async (req, res) => {
-  console.log('check for params');
+  console.log('inside styles route');
   try {
     let result = await stylesAggedByProdModel.find({product_id: parseInt(req.params[0].slice(10,req.params[0].length))}).lean();
     if (result.length === 0) {
@@ -48,7 +58,6 @@ app.get('*/styles', async (req, res) => {
         skusObj = {}
       }
       res.status(200).send(result[0]);
-      console.log(result);
     }
   } catch (err) {
     res.status(500).send(err)
@@ -60,14 +69,15 @@ app.get('*/styles', async (req, res) => {
 //TO-DO - figure out how to separate these.
 //also figure out how to use index instead of find
 app.get('/products/*', async (req, res) => {
-  console.log(req.params);
+  // console.log(req.params);
   let productId = parseInt(req.params[0]);
-  if (productId === undefined) {
+  if (productId === undefined || isNaN(productId)) {
     console.log('inside products route');
     //stand in for the framework i will eventually get to that includes listening to parameters.
-    let result = await productModel.find({product_id: 1}).lean();
-    res.status(200).send(result[0]);
+    let result = await productModel.find({}).limit(5).lean();
+    res.status(200).send(result);
   } else {
+    console.log('inside product detail route');
     Promise.all([
       productModel.find({product_id: productId}).lean(),
       featureModel.find({product_id: productId}).lean()
@@ -81,7 +91,7 @@ app.get('/products/*', async (req, res) => {
       result['category'] = data[0][0].category;
       result['default_price'] = data[0][0].default_price;
       result['features'] = data[1][0].features;
-
+      console.log('sending product details back');
       res.status(200).send(result);
     })
     .catch((err) => {
@@ -90,27 +100,18 @@ app.get('/products/*', async (req, res) => {
   }
 })
 
-//products
-///need to make this its own route.
-// app.get('/products', async (req, res) => {
-//   console.log('inside products route');
-//   //stand in for the framework i will eventually get to that includes listening to parameters.
-//   let result = await productModel.find({product_id: 1}).lean();
-//   res.status(200).send(result[0]);
-// });
-
 //related
-//also needs indexing.
 app.get('*/related', async (req, res) => {
   console.log('related request recieved');
   try {
-    let result = await relatedModel.find({productId: req.query.product_id}).lean();
+    let result = await relatedModel.find({product_id: req.query.product_id}).lean();
     res.status(200).send(result[0].relatedProducts);
   } catch (err) {
     res.status(500).send(err);
   }
 })
 
+module.exports = { connectToDB, closeServer};
 
 
 
