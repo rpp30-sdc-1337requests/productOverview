@@ -100,21 +100,11 @@ app.get('/products/*', async (req, res) => {
   }
 })
 
-//products
-///need to make this its own route.
-// app.get('/products', async (req, res) => {
-//   console.log('inside products route');
-//   //stand in for the framework i will eventually get to that includes listening to parameters.
-//   let result = await productModel.find({product_id: 1}).lean();
-//   res.status(200).send(result[0]);
-// });
-
 //related
-//also needs indexing.
 app.get('*/related', async (req, res) => {
   console.log('related request recieved');
   try {
-    let result = await relatedModel.find({productId: req.query.product_id}).lean();
+    let result = await relatedModel.find({product_id: req.query.product_id}).lean();
     res.status(200).send(result[0].relatedProducts);
   } catch (err) {
     res.status(500).send(err);

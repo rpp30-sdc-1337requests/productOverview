@@ -34,7 +34,7 @@ describe('Related products', function () {
       .query({product_id: 1})
       .then((res) => {
         expect(res).to.have.status(200);
-
+        console.log(res.body);
         expect(res.body).to.deep.equal([2,3,8,7])
         done();
       })
