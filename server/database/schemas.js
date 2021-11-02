@@ -25,7 +25,7 @@ const connectToDB = async () => {
   }
 
   //i do this to give the inspect tab time to load before the database starts getting written to. Otherwise i don't get any interruptions for breakpoints so debugging is harder.
-  setTimeout(importFeaturesToMongo, 2000)
+  // setTimeout(importFeaturesToMongo, 2000)
 }
 
 connectToDB().catch( err => console.log(err));
