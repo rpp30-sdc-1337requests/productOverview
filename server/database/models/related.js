@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const relatedSchema = new mongoose.Schema ({
-  productId: Number,
+  product_id: { type: Number, index: true },
   relatedProducts: [Number]
 })
 
