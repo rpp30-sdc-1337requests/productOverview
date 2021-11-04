@@ -5,6 +5,8 @@ import { sleep } from 'k6';
 //product details url: 'http://localhost:3009/products/' + '999'+ Math.floor(Math.random() * 999).toString() + '/';
 //only producs url: 'http://localhost:3009/products/';
 //related request url: 'http://localhost:3009/products/' + '999'+ Math.floor(Math.random() * 999).toString() + '/related';
+//command to run test:  k6 run ./server/k6Test.js
+
 
 export const options = {
   scenarios: {
