@@ -43,7 +43,7 @@ const closeServer = () => {
 //style
 //
 app.get('*/styles', async (req, res) => {
-  console.log('inside styles route');
+  // console.log('inside styles route');
   try {
     let result = await stylesAggedByProdModel.find({product_id: parseInt(req.params[0].slice(10,req.params[0].length))}).lean();
     if (result.length === 0) {
@@ -72,12 +72,12 @@ app.get('/products/*', async (req, res) => {
   // console.log(req.params);
   let productId = parseInt(req.params[0]);
   if (productId === undefined || isNaN(productId)) {
-    console.log('inside products route');
+    // console.log('inside products route');
     //stand in for the framework i will eventually get to that includes listening to parameters.
     let result = await productModel.find({}).limit(5).lean();
     res.status(200).send(result);
   } else {
-    console.log('inside product detail route');
+    // console.log('inside product detail route');
     Promise.all([
       productModel.find({product_id: productId}).lean(),
       featureModel.find({product_id: productId}).lean()
@@ -91,7 +91,7 @@ app.get('/products/*', async (req, res) => {
       result['category'] = data[0][0].category;
       result['default_price'] = data[0][0].default_price;
       result['features'] = data[1][0].features;
-      console.log('sending product details back');
+      // console.log('sending product details back');
       res.status(200).send(result);
     })
     .catch((err) => {
@@ -102,7 +102,7 @@ app.get('/products/*', async (req, res) => {
 
 //related
 app.get('*/related', async (req, res) => {
-  console.log('related request recieved');
+  // console.log('related request recieved');
   try {
     let result = await relatedModel.find({product_id: req.query.product_id}).lean();
     res.status(200).send(result[0].relatedProducts);
