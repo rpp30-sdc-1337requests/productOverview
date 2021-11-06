@@ -37,10 +37,7 @@ const closeServer = () => {
   console.log('closed the server and db!');
 }
 
-//universal get
-// app.get('/*', (req, res) => {
-//   console.log('Received something from someone!!!');
-// })
+
 //style
 //
 app.get('*/styles', async (req, res) => {
