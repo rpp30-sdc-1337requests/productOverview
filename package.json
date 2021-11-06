@@ -9,6 +9,7 @@
   "dependencies": {
     "chai-http": "^4.3.0",
     "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
     "csvtojson": "^2.0.10",
     "express": "^4.17.1",
     "jest": "^27.2.5",
