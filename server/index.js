@@ -8,6 +8,7 @@ const productModel = require('./database/models/products.js').Product
 const featureModel = require('./database/models/features.js').Feature
 const relatedModel = require('./database/models/related.js').Related
 const stylesAggedByProdModel = require('./database/models/stylesAggedByProd.js').StylesAggedByProd
+const productDetailsModel = require('./database/models/productDetails.js').ProductDetail
 
 //for reimport only
 // const databaseHelpers = require('./database/schemas.js');
@@ -47,6 +48,10 @@ app.get('*/styles', async (req, res) => {
   try {
     let result = await stylesAggedByProdModel.find({product_id: parseInt(req.params[0].slice(10,req.params[0].length))}).lean();
     if (result.length === 0) {
+      let result = {
+        product_id: parseInt(req.params[0].slice(10,req.params[0].length)),
+        results: []
+      }
       res.status(200).send(result);
     } else {
       let skusObj = {};
@@ -78,25 +83,8 @@ app.get('/products/*', async (req, res) => {
     res.status(200).send(result);
   } else {
     // console.log('inside product detail route');
-    Promise.all([
-      productModel.find({product_id: productId}).lean(),
-      featureModel.find({product_id: productId}).lean()
-    ])
-    .then ((data) => {
-      let result = {};
-      result['product_id'] = data[0][0].product_id;
-      result['name'] = data[0][0].name;
-      result['slogan'] = data[0][0].slogan;
-      result['description'] = data[0][0].description;
-      result['category'] = data[0][0].category;
-      result['default_price'] = data[0][0].default_price;
-      result['features'] = data[1][0].features;
-      // console.log('sending product details back');
-      res.status(200).send(result);
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    })
+    let result = await productDetailsModel.find({product_id: productId}).lean();
+    res.status(200).send(result[0]);
   }
 })
 
@@ -104,7 +92,7 @@ app.get('/products/*', async (req, res) => {
 app.get('*/related', async (req, res) => {
   // console.log('related request recieved');
   try {
-    let result = await relatedModel.find({product_id: req.query.product_id}).lean();
+    let result = await relatedModel.find({product_id: parseInt(req.query.product_id)}).lean();
     res.status(200).send(result[0].relatedProducts);
   } catch (err) {
     res.status(500).send(err);
@@ -112,6 +100,8 @@ app.get('*/related', async (req, res) => {
 })
 
 module.exports = { connectToDB, closeServer};
+
+
 
 
 
