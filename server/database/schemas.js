@@ -8,7 +8,15 @@ const stylesAggedModel = require('./models/stylesAggedWithSkusAndPhotos.js').Sty
 const stylesModel = require('./models/styles.js').Style;
 const photosModel = require('./models/photos.js').Photo;
 const skusModel = require('./models/skus.js').Skus;
-
+const productDetailsModel = require('./models/productDetails.js').ProductDetail;
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const csvWriter = createCsvWriter({
+  path: 'styleDebugger.csv',
+  header: [
+    {id: 'productId', title: 'Product Id'},
+    {id: 'isInStylesAggedByProdsModel', title: 'has entry in styles aggregation?'},
+  ]
+});
 
 var db;
 const csvtojson = require('csvtojson');
@@ -25,7 +33,7 @@ const connectToDB = async () => {
   }
 
   //i do this to give the inspect tab time to load before the database starts getting written to. Otherwise i don't get any interruptions for breakpoints so debugging is harder.
-  // setTimeout(importFeaturesToMongo, 2000)
+  // setTimeout(createProductDetails, 2000)
 }
 
 connectToDB().catch( err => console.log(err));
@@ -454,4 +462,82 @@ const groupStylesByProdId = async () => {
     console.log(`[styleToProdAgg] entry # ${i} complete.`)
   }
   console.log('[stylesToProdAgg] done.');
+
+}
+
+const createProductDetails = async () => {
+  const productCount = await productModel.count();
+
+  for (let i = 1; i <= productCount; i++) {
+    let result = await productModel.aggregate([
+      { $match: { product_id: i } },
+      {
+        $lookup: {
+          from: 'features',
+          localField: 'product_id',
+          foreignField: 'product_id',
+          as: 'features'
+        }
+      }
+    ]);
+    // console.log(result);
+    if (result[0].features.length !== 0) {
+      let newDetail = new productDetailsModel ({
+        product_id: result[0].product_id,
+        name: result[0].name,
+        slogan: result[0].slogan,
+        description: result[0].description,
+        category: result[0].category,
+        default_price: result[0].default_price,
+        features: result[0].features[0].features
+      });
+      await newDetail.save();
+    } else {
+      let newDetail = new productDetailsModel ({
+        product_id: result[0].product_id,
+        name: result[0].name,
+        slogan: result[0].slogan,
+        description: result[0].description,
+        category: result[0].category,
+        default_price: result[0].default_price,
+        features: []
+      });
+      await newDetail.save();
+    }
+
+    console.log(`[productDetails] entry # ${i} complete`);
+  }
+  console.log('[productDetails] done.');
+}
+
+const styleDebugger = async () => {
+  let count = 1;
+  let countOfMissingIds = 0;
+  let data = [];
+  let productCount = await productModel.count();
+
+  for (let i = 1; i <= productCount; i++) {
+    count++
+    let result = await stylesAggedByProdModel.find({product_id: i}).lean();
+    if (result.length === 0) {
+      console.log('missing id found!!! id = ' + i);
+      data.push({
+        productId: i,
+        isInStylesAggedByProdsModel: false
+      });
+      countOfMissingIds++;
+    } else {
+      data.push({
+        productId: i,
+        isInStylesAggedByProdsModel: true
+      });
+    }
+  }
+  csvWriter
+  .writeRecords(data)
+  .then( () => {
+    console.log('data written to file');
+    console.log('total count of missing Ids = ' + countOfMissingIds);
+    console.log('total product Ids checked = ' + count);
+});
 }
