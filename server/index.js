@@ -3,7 +3,11 @@ const app = express();
 const port = 3009;
 var server;
 const mongoose = require ('mongoose');
-const dbURL = 'mongodb://localhost:27017/products';
+const DB_USER = require('./config.js').DB_USER;
+const DB_PASS = require('./config.js').DB_PASS;
+// const dbURL = 'mongodb://localhost:27017/products';
+// const dbURL = 'mongodb://SDC_user:SDC_DB@localhost:27017/products'
+const dbURL = `mongodb://${DB_USER}:${DB_PASS}@localhost:27017/products`
 const productModel = require('./database/models/products.js').Product
 const featureModel = require('./database/models/features.js').Feature
 const relatedModel = require('./database/models/related.js').Related
