@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const DB_USER = require('../config.js').DB_USER;
+const DB_PASS = require('../config.js').DB_PASS;
 const productModel = require('./models/products.js').Product
 const featureModel = require('./models/features.js').Feature
 const relatedModel = require('./models/related.js').Related
@@ -35,15 +37,15 @@ const connectToDB = async () => {
   }
 
   //i do this to give the inspect tab time to load before the database starts getting written to. Otherwise i don't get any interruptions for breakpoints so debugging is harder.
-  // setTimeout(createProductDetails, 2000)
+  setTimeout(importProductCSVToMongo, 2000)
 }
 
 connectToDB().catch( err => console.log(err));
 
 
-const importProductCSVToMongo =  () => {
+const importProductCSVToMongo = () => {
   // const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/productShort.csv'
-  const productDataPath = '/Users/ashleyreischman/Desktop/SDC Data Exports/product.csv'
+  const productDataPath = __dirname + '/dataImports/product.csv';
 
   csvtojson().fromFile(productDataPath).then( async (data) => {
     for (let i = 0; i < data.length; i++) {
@@ -59,14 +61,14 @@ const importProductCSVToMongo =  () => {
       console.log(`[products] entry # ${i} complete.`)
     }
     console.log(`data import for products completed. Starting Features import...`)
-    // importFeaturesToMongo();
+    importFeaturesToMongo();
   })
 }
 
 const importFeaturesToMongo = () => {
 
   // const featuresFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/featuresShort.csv';
-  const featuresFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/features.csv'
+  const featuresFilePath = __dirname + '/dataImports/features.csv';
 
   csvtojson().fromFile(featuresFilePath).then( async (data) => {
 
@@ -116,14 +118,15 @@ const importFeaturesToMongo = () => {
         }
       }
     }
-    console.log('data import for features completed. All lines imported. Starting related import... ')
-    importRelatedProductsToMongo();
+    console.log('data import for features completed. All lines imported. Starting skus import... ')
+    importSkusToMongo();
   })
 }
 
 const importSkusToMongo = () => {
   // const skuFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/skusShort.csv';
-  const skuFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/skus.csv';
+  // const skuFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/skus.csv';
+  const skuFilePath = __dirname + '/dataImports/skus.csv';
 
   console.log('[sku] loading csv data into parser .....');
     csvtojson().fromFile(skuFilePath).then( async (data) => {
@@ -184,6 +187,7 @@ const importSkusToMongo = () => {
         }
       }
       console.log('data import for skus completed. All lines imported. Starting Styles Import....')
+      importStylesForAggregationToMongo()
     })
   }
 
@@ -192,8 +196,8 @@ const importSkusToMongo = () => {
 const importStylesForAggregationToMongo =  () => {
 
   // const styleFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/stylesShort.csv';
-  const styleFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/styles.csv'
-
+  // const styleFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/styles.csv'
+  const styleFilePath = __dirname + '/dataImports/styles.csv';
 
   csvtojson().fromFile(styleFilePath).then( async (data) => {
     for (let i = 0; i < data.length; i++) {
@@ -212,14 +216,15 @@ const importStylesForAggregationToMongo =  () => {
       await newEntry.save();
       console.log(`[stylestest] entry # ${i} complete.`)
     }
-    console.log(`data import for styles completed. Starting skus import...`)
-
+    console.log(`data import for styles completed. Starting photos import...`)
+    importPhotosToMongo();
   })
 }
 
 const importPhotosToMongo = () => {
   // const photoFilePath  = '/Users/ashleyreischman/Desktop/SDC Data Exports/photosShort.csv';
-  const photoFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/photos.csv';
+  // const photoFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/photos.csv';
+  const photoFilePath = __dirname + '/dataImports/photos.csv';
 
 
   console.log('[photos] loading csv data into parser .....');
@@ -281,14 +286,15 @@ const importPhotosToMongo = () => {
         }
       }
     }
-    console.log('data import for photos completed. All lines imported. All data imports complete')
-
+    console.log('data import for photos completed. Starting related products')
+    importRelatedProductsToMongo();
   })
 }
 
 const importRelatedProductsToMongo = () => {
   // const relatedFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/relatedShort.csv';
-  const relatedFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/related.csv'
+  // const relatedFilePath = '/Users/ashleyreischman/Desktop/SDC Data Exports/related.csv'
+  const relatedFilePath = __dirname + '/dataImports/related.csv';
 
   csvtojson().fromFile(relatedFilePath).then( async (data) => {
 
@@ -341,7 +347,8 @@ const importRelatedProductsToMongo = () => {
         }
       }
     }
-    console.log('data import for related completed. All lines imported.')
+    console.log('data import for related completed. Starting styles aggregation');
+    aggregateStyles();
   })
 }
 
@@ -435,6 +442,8 @@ const aggregateStyles = async () => {
       console.log(`[styleAgg] entry # ${i} complete.`)
     }
   }
+  console.log('Finished with styles aggregation. Starting styles aggregation by product id...')
+  groupStylesByProdId()
 }
 
 const groupStylesByProdId = async () => {
@@ -463,8 +472,8 @@ const groupStylesByProdId = async () => {
     await newEntry.save();
     console.log(`[styleToProdAgg] entry # ${i} complete.`)
   }
-  console.log('[stylesToProdAgg] done.');
-
+  console.log('[stylesToProdAgg] done. Moving on to product details');
+  createProductDetails()
 }
 
 const createProductDetails = async () => {
@@ -509,7 +518,7 @@ const createProductDetails = async () => {
 
     console.log(`[productDetails] entry # ${i} complete`);
   }
-  console.log('[productDetails] done.');
+  console.log('[productDetails] done. All imports complete!');
 }
 
 const styleDebugger = async () => {

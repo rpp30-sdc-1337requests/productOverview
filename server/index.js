@@ -1,45 +1,45 @@
 const express = require ('express');
 const app = express();
 const port = 3009;
-var server;
-const mongoose = require ('mongoose');
-const DB_USER = require('./config.js').DB_USER;
-const DB_PASS = require('./config.js').DB_PASS;
+// var server;
+// const mongoose = require ('mongoose');
+// const DB_USER = require('./config.js').DB_USER;
+// const DB_PASS = require('./config.js').DB_PASS;
 // const dbURL = 'mongodb://localhost:27017/products';
 // const dbURL = 'mongodb://SDC_user:SDC_DB@localhost:27017/products'
-const dbURL = `mongodb://${DB_USER}:${DB_PASS}@localhost:27017/products`
-const productModel = require('./database/models/products.js').Product
-const featureModel = require('./database/models/features.js').Feature
-const relatedModel = require('./database/models/related.js').Related
-const stylesAggedByProdModel = require('./database/models/stylesAggedByProd.js').StylesAggedByProd
-const productDetailsModel = require('./database/models/productDetails.js').ProductDetail
+// const dbURL = `mongodb://${DB_USER}:${DB_PASS}@localhost:27017/products`
+// const productModel = require('./database/models/products.js').Product
+// const featureModel = require('./database/models/features.js').Feature
+// const relatedModel = require('./database/models/related.js').Related
+// const stylesAggedByProdModel = require('./database/models/stylesAggedByProd.js').StylesAggedByProd
+// const productDetailsModel = require('./database/models/productDetails.js').ProductDetail
 
 //for reimport only
-// const databaseHelpers = require('./database/schemas.js');
+const databaseHelpers = require('./database/schemas.js');
 
-// app.listen(port, () => {
-//   console.log(`Server is up on port ${port}`);
-// })
+app.listen(port, () => {
+  console.log(`Server is up on port ${port}`);
+})
 
-const connectToDB = () => {
-  mongoose.connect(dbURL)
-  .then ((result) => {
-    server = app.listen(port, () => {
-      console.log(`DB is connect & server is listening on port ${port}`);
-    })
-  })
-  .catch((err) => {
-    console.error(error)
-  })
-}
+// const connectToDB = () => {
+//   mongoose.connect(dbURL)
+//   .then ((result) => {
+//     server = app.listen(port, () => {
+//       console.log(`DB is connect & server is listening on port ${port}`);
+//     })
+//   })
+//   .catch((err) => {
+//     console.error(error)
+//   })
+// }
 
-connectToDB();
+// connectToDB();
 
-const closeServer = () => {
-  server.close();
-  mongoose.connection.close();
-  console.log('closed the server and db!');
-}
+// const closeServer = () => {
+//   server.close();
+//   mongoose.connection.close();
+//   console.log('closed the server and db!');
+// }
 
 
 //style
@@ -100,14 +100,4 @@ app.get('*/related', async (req, res) => {
   }
 })
 
-module.exports = { connectToDB, closeServer};
-
-
-
-
-
-
-
-
-
-
+// module.exports = { connectToDB, closeServer};
