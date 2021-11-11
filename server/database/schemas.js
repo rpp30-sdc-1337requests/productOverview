@@ -22,7 +22,9 @@ var db;
 const csvtojson = require('csvtojson');
 const connectToDB = async () => {
   console.log('attempting to connect to db');
-  await mongoose.connect('mongodb://localhost:27017/products');
+  // await mongoose.connect('mongodb://localhost:27017/products');
+  const dbURL = `mongodb://${DB_USER}:${DB_PASS}@localhost:27017/products`
+  await mongoose.connect(dbURL);
 
   db = mongoose.connection
 
