@@ -3,7 +3,8 @@
 *.csv
 .nyc_output/
 config.js
-
+newrelic.js
+newrelic_agent.log
 
 #folders
 node_modules
