@@ -1,6 +1,7 @@
 const express = require ('express');
 const app = express();
 const port = 80;
+require('newrelic');
 var server;
 const mongoose = require ('mongoose');
 const DB_USER = require('./config.js').DB_USER;
